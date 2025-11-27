@@ -1,3 +1,6 @@
+Materia de embarcados 
+Alunos: Douglas Paz e Paulo Heleno
+
 # Projeto ESP32 com MQTT e Botão
 
 Este projeto utiliza um ESP32 para publicar o estado de um botão físico via MQTT.
