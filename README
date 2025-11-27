@@ -1,0 +1,127 @@
+# Projeto ESP32 com MQTT e Botão
+
+Este projeto utiliza um ESP32 para publicar o estado de um botão físico via MQTT.
+Sempre que o botão é pressionado ou solto, o ESP32 envia uma mensagem para um tópico MQTT no broker Mosquitto.
+
+Além disso, um LED pode ser controlado ou utilizado como indicador (dependendo da lógica futura).
+
+O projeto usa:
+
+- FreeRTOS (para rodar tarefas em paralelo)
+
+- ESP-IDF
+
+- Wi-Fi
+
+- MQTT
+
+- Mosquitto como broker
+
+
+## Funções principais do código
+
+```bash
+gpio_reset_pin(LED_PIN);
+gpio_set_direction(LED_PIN, GPIO_MODE_OUTPUT);
+
+gpio_reset_pin(BTN_PIN);
+gpio_set_direction(BTN_PIN, GPIO_MODE_INPUT);
+gpio_set_pull_mode(BTN_PIN, GPIO_PULLUP_ONLY);
+
+xTaskCreate(button_task, "button_task", 2048, NULL, 5, NULL);
+``` 
+
+-------------------------------------------------
+
+```bash
+
+Define o LED como saída
+
+Define o botão como entrada
+
+Configura o botão com pull-up nterno
+
+O botão funciona em lógica invertida:
+
+Pressionado → nível 0
+
+Solto → nível 1
+
+```
+
+Tarefa do botão (FreeRTOS)
+xTaskCreate(button_task, "button_task", 2048, NULL, 5, NULL);
+
+
+Cria uma tarefa separada, que roda em paralelo ao programa principal.
+Essa tarefa fica monitorando o estado do botão continuamente.
+
+
+Publicação via MQTT
+
+Quando detecta mudança:
+
+esp_mqtt_client_publish(mqtt_client, "bnt/estado", "1", 0, 0, 0);
+
+
+"1" significa pressionado
+
+"0" significa solto
+
+Tópico utilizado: bnt/estado
+
+Conexão MQTT
+
+O ESP32 se conecta ao Mosquitto usando:
+
+IP do broker
+
+Porta configurada
+
+Sem autenticação (modo allow_anonymous ativo)
+
+
+Configuração do Mosquitto
+
+Você mencionou que precisou informar o caminho do mosquitto.conf ao iniciar o broker.
+
+Arquivo de configuração típico:
+
+```bash
+
+listener 1883
+protocol mqtt
+allow_anonymous true
+
+listener 9001
+protocol websockets
+``` 
+
+Isso garante que:
+
+Porta 1883 será usada para MQTT normal
+
+Porta 9001 será usada para WebSocket (caso você tenha front-end usando MQTT.js)
+
+## Tópicos utilizados
+Tópico	Descrição
+bnt/estado	Publica o estado do botão
+led/acao recebe um 0 ou 1 para ligar/desligar o LED
+
+## Como rodar o projeto
+
+Instale o ESP-IDF
+
+Configure o Wi-Fi no código
+
+Inicie o Mosquitto com seu mosquitto.conf
+
+Compile e grave no ESP32:
+
+```bash
+idf.py build
+idf.py flash
+idf.py monitor
+```
+
+Pressione o botão → veja mensagens no terminal ou no broker
